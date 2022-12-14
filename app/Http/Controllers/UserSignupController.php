@@ -6,14 +6,11 @@ use Redirect;
 use App\Attendize\Utils;
 use App\Models\Account;
 use App\Models\User;
-use App\Models\PaymentGateway;
-use App\Models\AccountPaymentGateway;
 use Hash;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\Request;
 use Mail;
 use Services\Captcha\Factory;
-use Illuminate\Support\Facades\Lang;
 
 class UserSignupController extends Controller
 {
@@ -81,16 +78,14 @@ class UserSignupController extends Controller
         $user_data['is_registered'] = 1;
         $user = User::create($user_data);
 
-        $payment_gateway_data = [
-            'payment_gateway_id' => PaymentGateway::getDefaultPaymentGatewayId(),
-            'account_id' => $account->id,
-            'config' => '{"apiKey":"","publishableKey":""}',
-        ];
-        $paymentGateway = AccountPaymentGateway::create($payment_gateway_data);
+        // We need to assign the first ever user as super admin to be able to add the first organiser
+        if ($request->get('first_run') === 'yup') {
+            $user->assignRole('super admin');
+        }
 
         if ($is_attendize) {
             // TODO: Do this async?
-            Mail::send(Lang::locale().'.Emails.ConfirmEmail',
+            Mail::send('Emails.ConfirmEmail',
                 ['first_name' => $user->first_name, 'confirmation_code' => $user->confirmation_code],
                 function ($message) use ($request) {
                     $message->to($request->get('email'), $request->get('first_name'))
