@@ -42,7 +42,7 @@ class ManageAccountController extends MyBaseController
             'payment_gateways'           => PaymentGateway::getAllWithDefaultSet(),
             'default_payment_gateway_id' => PaymentGateway::getDefaultPaymentGatewayId(),
             'account_payment_gateways'   => AccountPaymentGateway::scope()->get(),
-            'version_info'               => $this->getVersionInfo(),
+            'version_info'               => "1",
         ];
 
         return view('ManageAccount.Modals.EditAccount', $data);
